@@ -52,7 +52,7 @@ class changeUsername(graphene.Mutation):
 	user = graphene.Field(Users)
 
 	def mutate(cls, info, **kwargs):
-		query = Users.get_query(info.context)
+		query = Users.get_query(info)
 		email = kwargs.get('email')
 		username = kwargs.get('username')
 		user = query.filter(User.email == email).first()
@@ -69,7 +69,7 @@ class Query(graphene.ObjectType):
 	all_users = SQLAlchemyConnectionField(Users)
 
 	def resolve_find_user(self, info, **kwargs):
-		query = Users.get_query(info.context)
+		query = Users.get_query(info)
 		username = kwargs.get('username')
 		return query.filter(User.username == username).first()
 
