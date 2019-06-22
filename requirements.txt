@@ -1,0 +1,10 @@
+gunicorn
+Flask
+Flask-GraphQL
+graphene
+graphene-sqlalchemy
+graphql-core
+graphql-relay
+flask-sqlalchemy
+psycopg2
+
