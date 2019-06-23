@@ -1,8 +1,6 @@
 import os
 from flask import Flask
 from flask_graphql import GraphQLView
-from sqlalchemy import create_engine
-from sqlalchemy.orm import scoped_session, sessionmaker
 from flask_sqlalchemy import SQLAlchemy
 import graphene
 from graphene import relay
@@ -10,13 +8,7 @@ from graphene_sqlalchemy import SQLAlchemyConnectionField, SQLAlchemyObjectType
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
-
 db = SQLAlchemy(app)
-
-engine = create_engine(os.environ['DATABASE_URL'], convert_unicode=True)
-db_session = scoped_session(sessionmaker(autocommit=False,
-                                         autoflush=False,
-                                         bind=engine))
 
 class User(db.Model):
 	__tablename__ = 'users'
@@ -43,8 +35,8 @@ class createUser(graphene.Mutation):
 
 	def mutate(cls, info, **kwargs):
 		user = User(name=kwargs.get('name'), email=kwargs.get('email'), username=kwargs.get('username'))
-		db_session.add(user)
-		db_session.commit()
+		db.session.add(user)
+		db.session.commit()
 		ok = True
 		return createUser(user=user, ok=ok)
 
@@ -62,7 +54,7 @@ class changeUsername(graphene.Mutation):
 		username = kwargs.get('username')
 		user = query.filter(User.email == email).first()
 		user.username = username
-		db_session.commit()
+		db.session.commit()
 		ok = True
 
 		return changeUsername(user=user, ok = ok)
@@ -85,8 +77,7 @@ class MyMutations(graphene.ObjectType):
 
 schema = graphene.Schema(query=Query, mutation=MyMutations, types=[Users])
 
-
-app.add_url_rule('/graphql', view_func=GraphQLView.as_view('graphql', schema=schema, graphiql=True, context={'session': db_session}))
+app.add_url_rule('/graphql', view_func=GraphQLView.as_view('graphql', schema=schema, graphiql=True, context={'session': db.session}))
 
 @app.route('/')
 def index():
