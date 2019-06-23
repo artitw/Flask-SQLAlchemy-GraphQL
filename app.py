@@ -13,6 +13,11 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
 
 db = SQLAlchemy(app)
 
+engine = create_engine(os.environ['DATABASE_URL'], convert_unicode=True)
+db_session = scoped_session(sessionmaker(autocommit=False,
+                                         autoflush=False,
+                                         bind=engine))
+
 class User(db.Model):
 	__tablename__ = 'users'
 	id = db.Column(db.Integer, primary_key=True)
@@ -80,10 +85,6 @@ class MyMutations(graphene.ObjectType):
 
 schema = graphene.Schema(query=Query, mutation=MyMutations, types=[Users])
 
-engine = create_engine(os.environ['DATABASE_URL'], convert_unicode=True)
-db_session = scoped_session(sessionmaker(autocommit=False,
-                                         autoflush=False,
-                                         bind=engine))
 
 app.add_url_rule('/graphql', view_func=GraphQLView.as_view('graphql', schema=schema, graphiql=True, context={'session': db_session}))
 
